@@ -1,4 +1,20 @@
 
+
+
+
+dt = Current Data Table();
+
+// Safety checks (optional but useful)
+If( Is Empty( dt ),
+    Throw( "No current data table found." );
+);
+
+// Ensure the column exists before sorting (helps avoid runtime errors)
+If( !Contains( dt << Get Column Names( string ), "RUN_START_TIME" ),
+    Throw( "Column 'RUN_START_TIME' not found in the current data table." );
+);
+
+
 dt = Current Data Table();
 
 // Sort the data table by RUN_START_TIME in descending order
