@@ -1,45 +1,4 @@
 
-
-
-
-
-// Ensure variables defined here don't leak globally
-Names Default To Here( 1 );
-
-// --- Start/Cancel dialog (modal) ---
-choice = .;
-New Window( "Sort by RUN_START_TIME",
-    <<Modal,
-    V List Box(
-        Spacer Box( size( 0, 6 ) ),
-        Text Box(
-            "Ready to sort the current data table by RUN_START_TIME (descending)?",
-            <<Set Font Size( 12 )
-        ),
-        Spacer Box( size( 0, 10 ) ),
-        H Center Box(
-            H List Box(
-                Button Box( "Start",
-                    choice = 1;
-                    // Close the modal window
-                    Throw();
-                ),
-                Button Box( "Cancel",
-                    choice = 0;
-                    // Close the modal window
-                    Throw();
-                )
-            )
-        )
-    )
-);
-
-// If user cancelled, stop the script with a friendly message
-If( !Is Missing( choice ) & choice == 0,
-    Show( "Operation cancelled by user." );
-    Stop(); // or just return();
-);
-
 dt = Current Data Table();
 
 // Sort the data table by RUN_START_TIME in descending order
@@ -58,124 +17,360 @@ dt << New Column( "DCS Type",
             If(
                 Lag(:ROUTE, -1) == "ECTW.304",
                 "Post TW DCS for " ||
-                If( Contains( Lag(:RECIPE, -1), "P5/P-P5" ),
+                If(
+                    // Any Pn/P-Pn present? (n = 1..6)
+                    Contains( Lag(:RECIPE, -1), "P1/P-P1" ) |
+                    Contains( Lag(:RECIPE, -1), "P2/P-P2" ) |
+                    Contains( Lag(:RECIPE, -1), "P3/P-P3" ) |
+                    Contains( Lag(:RECIPE, -1), "P4/P-P4" ) |
+                    Contains( Lag(:RECIPE, -1), "P5/P-P5" ) |
+                    Contains( Lag(:RECIPE, -1), "P6/P-P6" ),
                     Substitute(
                         Lag(:RECIPE, -1),
+                        // Remove Pn/P-Pn- for n=1..6
+                        "SCCM-POLY/P1/P-P1-", "",
+                        "SCCM-POLY/P2/P-P2-", "",
+                        "SCCM-POLY/P3/P-P3-", "",
+                        "SCCM-POLY/P4/P-P4-", "",
                         "SCCM-POLY/P5/P-P5-", "",
-                        "SYSTEM/LPC/MULTI/P-", "",   // added previously
-                        "SYSTEM/LPC/MULTI/M-", "",   // newly added
-                        "SYSTEM/LPC/MULTI/E-", ""    // newly added
+                        "SCCM-POLY/P6/P-P6-", "",
+                        // SYSTEM/LPC/MULTI tokens
+                        "SYSTEM/LPC/MULTI/P-", "", 
+                        "SYSTEM/LPC/MULTI/M-", "", 
+                        "SYSTEM/LPC/MULTI/E-", "",
+                        // SYSTEM/LPC/P1..PC6 /P-
+                        "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                        "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                        // SYSTEM/LPC/P1 E-/M-/S- and typo variant
+                        "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                        "YSTEM/LPC/P1/S-", "",
+                        // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                        "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                        "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                        "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                        "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                        "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                     ),
-                    If( Contains( Lag(:RECIPE, -1), "P5/P-" ),
+                    If(
+                        // Any Pn/P- present? (n = 1..6)
+                        Contains( Lag(:RECIPE, -1), "P1/P-" ) |
+                        Contains( Lag(:RECIPE, -1), "P2/P-" ) |
+                        Contains( Lag(:RECIPE, -1), "P3/P-" ) |
+                        Contains( Lag(:RECIPE, -1), "P4/P-" ) |
+                        Contains( Lag(:RECIPE, -1), "P5/P-" ) |
+                        Contains( Lag(:RECIPE, -1), "P6/P-" ),
                         Substitute(
                             Lag(:RECIPE, -1),
+                            // Remove Pn/P- for n=1..6
+                            "SCCM-POLY/P1/P-", "",
+                            "SCCM-POLY/P2/P-", "",
+                            "SCCM-POLY/P3/P-", "",
+                            "SCCM-POLY/P4/P-", "",
                             "SCCM-POLY/P5/P-", "",
-                            "SYSTEM/LPC/MULTI/P-", "", // added previously
-                            "SYSTEM/LPC/MULTI/M-", "", // newly added
-                            "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                            "SCCM-POLY/P6/P-", "",
+                            // SYSTEM/LPC/MULTI tokens
+                            "SYSTEM/LPC/MULTI/P-", "", 
+                            "SYSTEM/LPC/MULTI/M-", "", 
+                            "SYSTEM/LPC/MULTI/E-", "",
+                            // SYSTEM/LPC/P1..PC6 /P-
+                            "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                            "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                            // SYSTEM/LPC/P1 E-/M-/S- and typo variant
+                            "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                            "YSTEM/LPC/P1/S-", "",
+                            // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                            "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                            "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                            "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                            "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                            "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                         ),
                         Substitute(
                             Lag(:RECIPE, -1),
-                            "SCCM-POLY/P5/S-", "",     // existing
-                            "SCCM-POLY/P5/E-", "",     // existing
-                            /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
-                            "SCCM-POLY/P5/M-P5-", "",  // keep to strip M-P5- correctly
-                            "SYSTEM/LPC/MULTI/P-", "", // added previously
-                            "SYSTEM/LPC/MULTI/M-", "", // newly added
-                            "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                            // Remove S-/E-/M-Pn- for n=1..6
+                            "SCCM-POLY/P1/S-", "", "SCCM-POLY/P1/E-", "", "SCCM-POLY/P1/M-P1-", "",
+                            "SCCM-POLY/P2/S-", "", "SCCM-POLY/P2/E-", "", "SCCM-POLY/P2/M-P2-", "",
+                            "SCCM-POLY/P3/S-", "", "SCCM-POLY/P3/E-", "", "SCCM-POLY/P3/M-P3-", "",
+                            "SCCM-POLY/P4/S-", "", "SCCM-POLY/P4/E-", "", "SCCM-POLY/P4/M-P4-", "",
+                            "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-P5-", "",
+                            "SCCM-POLY/P6/S-", "", "SCCM-POLY/P6/E-", "", "SCCM-POLY/P6/M-P6-", "",
+                            // SYSTEM/LPC/MULTI tokens
+                            "SYSTEM/LPC/MULTI/P-", "", 
+                            "SYSTEM/LPC/MULTI/M-", "", 
+                            "SYSTEM/LPC/MULTI/E-", "",
+                            // SYSTEM/LPC/P1..PC6 /P-
+                            "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                            "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                            // SYSTEM/LPC/P1 E-/M-/S- and typo variant
+                            "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                            "YSTEM/LPC/P1/S-", "",
+                            // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                            "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                            "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                            "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                            "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                            "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                         )
                     )
                 ),
                 If(
                     Lag(:ROUTE, 1) == "ECTW.304",
                     "Pre TW DCS for " ||
-                    If( Contains( Lag(:RECIPE, 1), "P5/P-P5" ),
+                    If(
+                        // Any Pn/P-Pn present? (n = 1..6)
+                        Contains( Lag(:RECIPE, 1), "P1/P-P1" ) |
+                        Contains( Lag(:RECIPE, 1), "P2/P-P2" ) |
+                        Contains( Lag(:RECIPE, 1), "P3/P-P3" ) |
+                        Contains( Lag(:RECIPE, 1), "P4/P-P4" ) |
+                        Contains( Lag(:RECIPE, 1), "P5/P-P5" ) |
+                        Contains( Lag(:RECIPE, 1), "P6/P-P6" ),
                         Substitute(
                             Lag(:RECIPE, 1),
+                            "SCCM-POLY/P1/P-P1-", "",
+                            "SCCM-POLY/P2/P-P2-", "",
+                            "SCCM-POLY/P3/P-P3-", "",
+                            "SCCM-POLY/P4/P-P4-", "",
                             "SCCM-POLY/P5/P-P5-", "",
-                            "SYSTEM/LPC/MULTI/P-", "", // added previously
-                            "SYSTEM/LPC/MULTI/M-", "", // newly added
-                            "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                            "SCCM-POLY/P6/P-P6-", "",
+                            "SYSTEM/LPC/MULTI/P-", "", 
+                            "SYSTEM/LPC/MULTI/M-", "", 
+                            "SYSTEM/LPC/MULTI/E-", "",
+                            "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                            "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                            "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                            "YSTEM/LPC/P1/S-", "",
+                            // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                            "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                            "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                            "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                            "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                            "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                         ),
-                        If( Contains( Lag(:RECIPE, 1), "P5/P-" ),
+                        If(
+                            // Any Pn/P- present? (n = 1..6)
+                            Contains( Lag(:RECIPE, 1), "P1/P-" ) |
+                            Contains( Lag(:RECIPE, 1), "P2/P-" ) |
+                            Contains( Lag(:RECIPE, 1), "P3/P-" ) |
+                            Contains( Lag(:RECIPE, 1), "P4/P-" ) |
+                            Contains( Lag(:RECIPE, 1), "P5/P-" ) |
+                            Contains( Lag(:RECIPE, 1), "P6/P-" ),
                             Substitute(
                                 Lag(:RECIPE, 1),
+                                "SCCM-POLY/P1/P-", "",
+                                "SCCM-POLY/P2/P-", "",
+                                "SCCM-POLY/P3/P-", "",
+                                "SCCM-POLY/P4/P-", "",
                                 "SCCM-POLY/P5/P-", "",
-                                "SYSTEM/LPC/MULTI/P-", "", // added previously
-                                "SYSTEM/LPC/MULTI/M-", "", // newly added
-                                "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                "SCCM-POLY/P6/P-", "",
+                                "SYSTEM/LPC/MULTI/P-", "", 
+                                "SYSTEM/LPC/MULTI/M-", "", 
+                                "SYSTEM/LPC/MULTI/E-", "",
+                                "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                                "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                                "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                                "YSTEM/LPC/P1/S-", "",
+                                // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                                "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                                "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                                "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                                "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                                "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                             ),
                             Substitute(
                                 Lag(:RECIPE, 1),
-                                "SCCM-POLY/P5/S-", "",     // existing
-                                "SCCM-POLY/P5/E-", "",     // existing
-                                /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
-                                "SCCM-POLY/P5/M-P5-", "",  // keep to strip M-P5- correctly
-                                "SYSTEM/LPC/MULTI/P-", "", // added previously
-                                "SYSTEM/LPC/MULTI/M-", "", // newly added
-                                "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                "SCCM-POLY/P1/S-", "", "SCCM-POLY/P1/E-", "", "SCCM-POLY/P1/M-P1-", "",
+                                "SCCM-POLY/P2/S-", "", "SCCM-POLY/P2/E-", "", "SCCM-POLY/P2/M-P2-", "",
+                                "SCCM-POLY/P3/S-", "", "SCCM-POLY/P3/E-", "", "SCCM-POLY/P3/M-P3-", "",
+                                "SCCM-POLY/P4/S-", "", "SCCM-POLY/P4/E-", "", "SCCM-POLY/P4/M-P4-", "",
+                                "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-P5-", "",
+                                "SCCM-POLY/P6/S-", "", "SCCM-POLY/P6/E-", "", "SCCM-POLY/P6/M-P6-", "",
+                                "SYSTEM/LPC/MULTI/P-", "", 
+                                "SYSTEM/LPC/MULTI/M-", "", 
+                                "SYSTEM/LPC/MULTI/E-", "",
+                                "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                                "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                                "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                                "YSTEM/LPC/P1/S-", "",
+                                // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                                "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                                "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                                "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                                "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                                "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                             )
                         )
                     ),
                     If(
                         Lag(:ROUTE, -1) == "ECTW.356",
                         "Pre DCS for " ||
-                        If( Contains( Lag(:RECIPE, 1), "P5/P-P5" ),
+                        If(
+                            // Any Pn/P-Pn present? (n = 1..6)
+                            Contains( Lag(:RECIPE, 1), "P1/P-P1" ) |
+                            Contains( Lag(:RECIPE, 1), "P2/P-P2" ) |
+                            Contains( Lag(:RECIPE, 1), "P3/P-P3" ) |
+                            Contains( Lag(:RECIPE, 1), "P4/P-P4" ) |
+                            Contains( Lag(:RECIPE, 1), "P5/P-P5" ) |
+                            Contains( Lag(:RECIPE, 1), "P6/P-P6" ),
                             Substitute(
                                 Lag(:RECIPE, 1),
+                                "SCCM-POLY/P1/P-P1-", "",
+                                "SCCM-POLY/P2/P-P2-", "",
+                                "SCCM-POLY/P3/P-P3-", "",
+                                "SCCM-POLY/P4/P-P4-", "",
                                 "SCCM-POLY/P5/P-P5-", "",
-                                "SYSTEM/LPC/MULTI/P-", "", // added previously
-                                "SYSTEM/LPC/MULTI/M-", "", // newly added
-                                "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                "SCCM-POLY/P6/P-P6-", "",
+                                "SYSTEM/LPC/MULTI/P-", "", 
+                                "SYSTEM/LPC/MULTI/M-", "", 
+                                "SYSTEM/LPC/MULTI/E-", "",
+                                "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                                "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                                "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                                "YSTEM/LPC/P1/S-", "",
+                                // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                                "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                                "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                                "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                                "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                                "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                             ),
-                            If( Contains( Lag(:RECIPE, 1), "P5/P-" ),
+                            If(
+                                // Any Pn/P- present? (n = 1..6)
+                                Contains( Lag(:RECIPE, 1), "P1/P-" ) |
+                                Contains( Lag(:RECIPE, 1), "P2/P-" ) |
+                                Contains( Lag(:RECIPE, 1), "P3/P-" ) |
+                                Contains( Lag(:RECIPE, 1), "P4/P-" ) |
+                                Contains( Lag(:RECIPE, 1), "P5/P-" ) |
+                                Contains( Lag(:RECIPE, 1), "P6/P-" ),
                                 Substitute(
                                     Lag(:RECIPE, 1),
+                                    "SCCM-POLY/P1/P-", "",
+                                    "SCCM-POLY/P2/P-", "",
+                                    "SCCM-POLY/P3/P-", "",
+                                    "SCCM-POLY/P4/P-", "",
                                     "SCCM-POLY/P5/P-", "",
-                                    "SYSTEM/LPC/MULTI/P-", "", // added previously
-                                    "SYSTEM/LPC/MULTI/M-", "", // newly added
-                                    "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                    "SCCM-POLY/P6/P-", "",
+                                    "SYSTEM/LPC/MULTI/P-", "", 
+                                    "SYSTEM/LPC/MULTI/M-", "", 
+                                    "SYSTEM/LPC/MULTI/E-", "",
+                                    "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                                    "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                                    "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                                    "YSTEM/LPC/P1/S-", "",
+                                    // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                                    "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                                    "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                                    "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                                    "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                                    "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                                 ),
                                 Substitute(
                                     Lag(:RECIPE, 1),
-                                    "SCCM-POLY/P5/S-", "",     // existing
-                                    "SCCM-POLY/P5/E-", "",     // existing
-                                    /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
-                                    "SCCM-POLY/P5/M-P5-", "",  // keep to strip M-P5- correctly
-                                    "SYSTEM/LPC/MULTI/P-", "", // added previously
-                                    "SYSTEM/LPC/MULTI/M-", "", // newly added
-                                    "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                    "SCCM-POLY/P1/S-", "", "SCCM-POLY/P1/E-", "", "SCCM-POLY/P1/M-P1-", "",
+                                    "SCCM-POLY/P2/S-", "", "SCCM-POLY/P2/E-", "", "SCCM-POLY/P2/M-P2-", "",
+                                    "SCCM-POLY/P3/S-", "", "SCCM-POLY/P3/E-", "", "SCCM-POLY/P3/M-P3-", "",
+                                    "SCCM-POLY/P4/S-", "", "SCCM-POLY/P4/E-", "", "SCCM-POLY/P4/M-P4-", "",
+                                    "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-P5-", "",
+                                    "SCCM-POLY/P6/S-", "", "SCCM-POLY/P6/E-", "", "SCCM-POLY/P6/M-P6-", "",
+                                    "SYSTEM/LPC/MULTI/P-", "", 
+                                    "SYSTEM/LPC/MULTI/M-", "", 
+                                    "SYSTEM/LPC/MULTI/E-", "",
+                                    "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                                    "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                                    "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                                    "YSTEM/LPC/P1/S-", "",
+                                    // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                                    "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                                    "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                                    "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                                    "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                                    "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                                 )
                             )
                         ),
                         If(
                             Lag(:ROUTE, 1) == "ECTW.356",
                             "Post DCS for " ||
-                            If( Contains( Lag(:RECIPE, -1), "P5/P-P5" ),
+                            If(
+                                // Any Pn/P-Pn present? (n = 1..6)
+                                Contains( Lag(:RECIPE, -1), "P1/P-P1" ) |
+                                Contains( Lag(:RECIPE, -1), "P2/P-P2" ) |
+                                Contains( Lag(:RECIPE, -1), "P3/P-P3" ) |
+                                Contains( Lag(:RECIPE, -1), "P4/P-P4" ) |
+                                Contains( Lag(:RECIPE, -1), "P5/P-P5" ) |
+                                Contains( Lag(:RECIPE, -1), "P6/P-P6" ),
                                 Substitute(
                                     Lag(:RECIPE, -1),
+                                    "SCCM-POLY/P1/P-P1-", "",
+                                    "SCCM-POLY/P2/P-P2-", "",
+                                    "SCCM-POLY/P3/P-P3-", "",
+                                    "SCCM-POLY/P4/P-P4-", "",
                                     "SCCM-POLY/P5/P-P5-", "",
-                                    "SYSTEM/LPC/MULTI/P-", "", // added previously
-                                    "SYSTEM/LPC/MULTI/M-", "", // newly added
-                                    "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                    "SCCM-POLY/P6/P-P6-", "",
+                                    "SYSTEM/LPC/MULTI/P-", "", 
+                                    "SYSTEM/LPC/MULTI/M-", "", 
+                                    "SYSTEM/LPC/MULTI/E-", "",
+                                    "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                                    "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                                    "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                                    "YSTEM/LPC/P1/S-", "",
+                                    // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                                    "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                                    "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                                    "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                                    "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                                    "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                                 ),
-                                If( Contains( Lag(:RECIPE, -1), "P5/P-" ),
+                                If(
+                                    // Any Pn/P- present? (n = 1..6)
+                                    Contains( Lag(:RECIPE, -1), "P1/P-" ) |
+                                    Contains( Lag(:RECIPE, -1), "P2/P-" ) |
+                                    Contains( Lag(:RECIPE, -1), "P3/P-" ) |
+                                    Contains( Lag(:RECIPE, -1), "P4/P-" ) |
+                                    Contains( Lag(:RECIPE, -1), "P5/P-" ) |
+                                    Contains( Lag(:RECIPE, -1), "P6/P-" ),
                                     Substitute(
                                         Lag(:RECIPE, -1),
+                                        "SCCM-POLY/P1/P-", "",
+                                        "SCCM-POLY/P2/P-", "",
+                                        "SCCM-POLY/P3/P-", "",
+                                        "SCCM-POLY/P4/P-", "",
                                         "SCCM-POLY/P5/P-", "",
-                                        "SYSTEM/LPC/MULTI/P-", "", // added previously
-                                        "SYSTEM/LPC/MULTI/M-", "", // newly added
-                                        "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                        "SCCM-POLY/P6/P-", "",
+                                        "SYSTEM/LPC/MULTI/P-", "", 
+                                        "SYSTEM/LPC/MULTI/M-", "", 
+                                        "SYSTEM/LPC/MULTI/E-", "",
+                                        "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                                        "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                                        "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                                        "YSTEM/LPC/P1/S-", "",
+                                        // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                                        "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                                        "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                                        "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                                        "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                                        "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                                     ),
                                     Substitute(
                                         Lag(:RECIPE, -1),
-                                        "SCCM-POLY/P5/S-", "",     // existing
-                                        "SCCM-POLY/P5/E-", "",     // existing
-                                        /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
-                                        "SCCM-POLY/P5/M-P5-", "",  // keep to strip M-P5- correctly
-                                        "SYSTEM/LPC/MULTI/P-", "", // added previously
-                                        "SYSTEM/LPC/MULTI/M-", "", // newly added
-                                        "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                        "SCCM-POLY/P1/S-", "", "SCCM-POLY/P1/E-", "", "SCCM-POLY/P1/M-P1-", "",
+                                        "SCCM-POLY/P2/S-", "", "SCCM-POLY/P2/E-", "", "SCCM-POLY/P2/M-P2-", "",
+                                        "SCCM-POLY/P3/S-", "", "SCCM-POLY/P3/E-", "", "SCCM-POLY/P3/M-P3-", "",
+                                        "SCCM-POLY/P4/S-", "", "SCCM-POLY/P4/E-", "", "SCCM-POLY/P4/M-P4-", "",
+                                        "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-P5-", "",
+                                        "SCCM-POLY/P6/S-", "", "SCCM-POLY/P6/E-", "", "SCCM-POLY/P6/M-P6-", "",
+                                        "SYSTEM/LPC/MULTI/P-", "", 
+                                        "SYSTEM/LPC/MULTI/M-", "", 
+                                        "SYSTEM/LPC/MULTI/E-", "",
+                                        "SYSTEM/LPC/P1/P-", "", "SYSTEM/LPC/P2/P-", "", "SYSTEM/LPC/P3/P-", "",
+                                        "SYSTEM/LPC/P4/P-", "", "SYSTEM/LPC/P5/P-", "", "SYSTEM/LPC/P6/P-", "",
+                                        "SYSTEM/LPC/P1/E-", "", "SYSTEM/LPC/P1/M-P1-", "", "SYSTEM/LPC/P1/S-", "",
+                                        "YSTEM/LPC/P1/S-", "",
+                                        // NEW: SYSTEM/LPC/P2..PC6 E-/M-/S-
+                                        "SYSTEM/LPC/P2/E-", "", "SYSTEM/LPC/P2/M-P2-", "", "SYSTEM/LPC/P2/S-", "",
+                                        "SYSTEM/LPC/P3/E-", "", "SYSTEM/LPC/P3/M-P3-", "", "SYSTEM/LPC/P3/S-", "",
+                                        "SYSTEM/LPC/P4/E-", "", "SYSTEM/LPC/P4/M-P4-", "", "SYSTEM/LPC/P4/S-", "",
+                                        "SYSTEM/LPC/P5/E-", "", "SYSTEM/LPC/P5/M-P5-", "", "SYSTEM/LPC/P5/S-", "",
+                                        "SYSTEM/LPC/P6/E-", "", "SYSTEM/LPC/P6/M-P6-", "", "SYSTEM/LPC/P6/S-", ""
                                     )
                                 )
                             ),
