@@ -1,7 +1,14 @@
 
-// Create or update the column "DCS Type"
 dt = Current Data Table();
 
+// Sort the data table by RUN_START_TIME in descending order
+dt << Sort(
+    By( :RUN_START_TIME ),
+    Order( Descending ),
+    Replace Table
+);
+
+// Create or update the column "DCS Type"
 dt << New Column( "DCS Type",
     Character,
     Formula(
@@ -14,7 +21,13 @@ dt << New Column( "DCS Type",
                     Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-P5-", "" ),
                     If( Contains( Lag(:RECIPE, -1), "P5/P-" ),
                         Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-", "" ),
-                        Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-", "" )
+                        Substitute(
+                            Lag(:RECIPE, -1),
+                            "SCCM-POLY/P5/S-", "",
+                            "SCCM-POLY/P5/E-", "",
+                            /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
+                            "SCCM-POLY/P5/M-P5-", ""   // keep to strip M-P5- correctly
+                        )
                     )
                 ),
                 If(
@@ -24,7 +37,13 @@ dt << New Column( "DCS Type",
                         Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-P5-", "" ),
                         If( Contains( Lag(:RECIPE, 1), "P5/P-" ),
                             Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-", "" ),
-                            Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-", "" )
+                            Substitute(
+                                Lag(:RECIPE, 1),
+                                "SCCM-POLY/P5/S-", "",
+                                "SCCM-POLY/P5/E-", "",
+                                /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
+                                "SCCM-POLY/P5/M-P5-", ""   // keep to strip M-P5- correctly
+                            )
                         )
                     ),
                     If(
@@ -34,7 +53,13 @@ dt << New Column( "DCS Type",
                             Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-P5-", "" ),
                             If( Contains( Lag(:RECIPE, 1), "P5/P-" ),
                                 Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-", "" ),
-                                Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-", "" )
+                                Substitute(
+                                    Lag(:RECIPE, 1),
+                                    "SCCM-POLY/P5/S-", "",
+                                    "SCCM-POLY/P5/E-", "",
+                                    /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
+                                    "SCCM-POLY/P5/M-P5-", ""   // keep to strip M-P5- correctly
+                                )
                             )
                         ),
                         If(
@@ -44,7 +69,13 @@ dt << New Column( "DCS Type",
                                 Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-P5-", "" ),
                                 If( Contains( Lag(:RECIPE, -1), "P5/P-" ),
                                     Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-", "" ),
-                                    Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-", "" )
+                                    Substitute(
+                                        Lag(:RECIPE, -1),
+                                        "SCCM-POLY/P5/S-", "",
+                                        "SCCM-POLY/P5/E-", "",
+                                        /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
+                                        "SCCM-POLY/P5/M-P5-", ""   // keep to strip M-P5- correctly
+                                    )
                                 )
                             ),
                             "Prod"
