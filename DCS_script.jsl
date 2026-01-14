@@ -1,0 +1,58 @@
+
+// Create or update the column "DCS Type"
+dt = Current Data Table();
+
+dt << New Column( "DCS Type",
+    Character,
+    Formula(
+        If(
+            :ROUTE == "ECTW.356",
+            If(
+                Lag(:ROUTE, -1) == "ECTW.304",
+                "Post TW DCS for " ||
+                If( Contains( Lag(:RECIPE, -1), "P5/P-P5" ),
+                    Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-P5-", "" ),
+                    If( Contains( Lag(:RECIPE, -1), "P5/P-" ),
+                        Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-", "" ),
+                        Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-", "" )
+                    )
+                ),
+                If(
+                    Lag(:ROUTE, 1) == "ECTW.304",
+                    "Pre TW DCS for " ||
+                    If( Contains( Lag(:RECIPE, 1), "P5/P-P5" ),
+                        Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-P5-", "" ),
+                        If( Contains( Lag(:RECIPE, 1), "P5/P-" ),
+                            Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-", "" ),
+                            Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-", "" )
+                        )
+                    ),
+                    If(
+                        Lag(:ROUTE, -1) == "ECTW.356",
+                        "Pre DCS for " ||
+                        If( Contains( Lag(:RECIPE, 1), "P5/P-P5" ),
+                            Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-P5-", "" ),
+                            If( Contains( Lag(:RECIPE, 1), "P5/P-" ),
+                                Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-", "" ),
+                                Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-", "" )
+                            )
+                        ),
+                        If(
+                            Lag(:ROUTE, 1) == "ECTW.356",
+                            "Post DCS for " ||
+                            If( Contains( Lag(:RECIPE, -1), "P5/P-P5" ),
+                                Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-P5-", "" ),
+                                If( Contains( Lag(:RECIPE, -1), "P5/P-" ),
+                                    Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-", "" ),
+                                    Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/S-", "", "SCCM-POLY/P5/E-", "", "SCCM-POLY/P5/M-", "" )
+                                )
+                            ),
+                            "Prod"
+                        )
+                    )
+                )
+            ),
+            "Prod"
+        )
+    )
+);
