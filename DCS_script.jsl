@@ -1,4 +1,45 @@
 
+
+
+
+
+// Ensure variables defined here don't leak globally
+Names Default To Here( 1 );
+
+// --- Start/Cancel dialog (modal) ---
+choice = .;
+New Window( "Sort by RUN_START_TIME",
+    <<Modal,
+    V List Box(
+        Spacer Box( size( 0, 6 ) ),
+        Text Box(
+            "Ready to sort the current data table by RUN_START_TIME (descending)?",
+            <<Set Font Size( 12 )
+        ),
+        Spacer Box( size( 0, 10 ) ),
+        H Center Box(
+            H List Box(
+                Button Box( "Start",
+                    choice = 1;
+                    // Close the modal window
+                    Throw();
+                ),
+                Button Box( "Cancel",
+                    choice = 0;
+                    // Close the modal window
+                    Throw();
+                )
+            )
+        )
+    )
+);
+
+// If user cancelled, stop the script with a friendly message
+If( !Is Missing( choice ) & choice == 0,
+    Show( "Operation cancelled by user." );
+    Stop(); // or just return();
+);
+
 dt = Current Data Table();
 
 // Sort the data table by RUN_START_TIME in descending order
@@ -18,15 +59,30 @@ dt << New Column( "DCS Type",
                 Lag(:ROUTE, -1) == "ECTW.304",
                 "Post TW DCS for " ||
                 If( Contains( Lag(:RECIPE, -1), "P5/P-P5" ),
-                    Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-P5-", "" ),
+                    Substitute(
+                        Lag(:RECIPE, -1),
+                        "SCCM-POLY/P5/P-P5-", "",
+                        "SYSTEM/LPC/MULTI/P-", "",   // added previously
+                        "SYSTEM/LPC/MULTI/M-", "",   // newly added
+                        "SYSTEM/LPC/MULTI/E-", ""    // newly added
+                    ),
                     If( Contains( Lag(:RECIPE, -1), "P5/P-" ),
-                        Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-", "" ),
                         Substitute(
                             Lag(:RECIPE, -1),
-                            "SCCM-POLY/P5/S-", "",
-                            "SCCM-POLY/P5/E-", "",
+                            "SCCM-POLY/P5/P-", "",
+                            "SYSTEM/LPC/MULTI/P-", "", // added previously
+                            "SYSTEM/LPC/MULTI/M-", "", // newly added
+                            "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                        ),
+                        Substitute(
+                            Lag(:RECIPE, -1),
+                            "SCCM-POLY/P5/S-", "",     // existing
+                            "SCCM-POLY/P5/E-", "",     // existing
                             /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
-                            "SCCM-POLY/P5/M-P5-", ""   // keep to strip M-P5- correctly
+                            "SCCM-POLY/P5/M-P5-", "",  // keep to strip M-P5- correctly
+                            "SYSTEM/LPC/MULTI/P-", "", // added previously
+                            "SYSTEM/LPC/MULTI/M-", "", // newly added
+                            "SYSTEM/LPC/MULTI/E-", ""  // newly added
                         )
                     )
                 ),
@@ -34,15 +90,30 @@ dt << New Column( "DCS Type",
                     Lag(:ROUTE, 1) == "ECTW.304",
                     "Pre TW DCS for " ||
                     If( Contains( Lag(:RECIPE, 1), "P5/P-P5" ),
-                        Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-P5-", "" ),
+                        Substitute(
+                            Lag(:RECIPE, 1),
+                            "SCCM-POLY/P5/P-P5-", "",
+                            "SYSTEM/LPC/MULTI/P-", "", // added previously
+                            "SYSTEM/LPC/MULTI/M-", "", // newly added
+                            "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                        ),
                         If( Contains( Lag(:RECIPE, 1), "P5/P-" ),
-                            Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-", "" ),
                             Substitute(
                                 Lag(:RECIPE, 1),
-                                "SCCM-POLY/P5/S-", "",
-                                "SCCM-POLY/P5/E-", "",
+                                "SCCM-POLY/P5/P-", "",
+                                "SYSTEM/LPC/MULTI/P-", "", // added previously
+                                "SYSTEM/LPC/MULTI/M-", "", // newly added
+                                "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                            ),
+                            Substitute(
+                                Lag(:RECIPE, 1),
+                                "SCCM-POLY/P5/S-", "",     // existing
+                                "SCCM-POLY/P5/E-", "",     // existing
                                 /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
-                                "SCCM-POLY/P5/M-P5-", ""   // keep to strip M-P5- correctly
+                                "SCCM-POLY/P5/M-P5-", "",  // keep to strip M-P5- correctly
+                                "SYSTEM/LPC/MULTI/P-", "", // added previously
+                                "SYSTEM/LPC/MULTI/M-", "", // newly added
+                                "SYSTEM/LPC/MULTI/E-", ""  // newly added
                             )
                         )
                     ),
@@ -50,15 +121,30 @@ dt << New Column( "DCS Type",
                         Lag(:ROUTE, -1) == "ECTW.356",
                         "Pre DCS for " ||
                         If( Contains( Lag(:RECIPE, 1), "P5/P-P5" ),
-                            Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-P5-", "" ),
+                            Substitute(
+                                Lag(:RECIPE, 1),
+                                "SCCM-POLY/P5/P-P5-", "",
+                                "SYSTEM/LPC/MULTI/P-", "", // added previously
+                                "SYSTEM/LPC/MULTI/M-", "", // newly added
+                                "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                            ),
                             If( Contains( Lag(:RECIPE, 1), "P5/P-" ),
-                                Substitute( Lag(:RECIPE, 1), "SCCM-POLY/P5/P-", "" ),
                                 Substitute(
                                     Lag(:RECIPE, 1),
-                                    "SCCM-POLY/P5/S-", "",
-                                    "SCCM-POLY/P5/E-", "",
+                                    "SCCM-POLY/P5/P-", "",
+                                    "SYSTEM/LPC/MULTI/P-", "", // added previously
+                                    "SYSTEM/LPC/MULTI/M-", "", // newly added
+                                    "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                ),
+                                Substitute(
+                                    Lag(:RECIPE, 1),
+                                    "SCCM-POLY/P5/S-", "",     // existing
+                                    "SCCM-POLY/P5/E-", "",     // existing
                                     /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
-                                    "SCCM-POLY/P5/M-P5-", ""   // keep to strip M-P5- correctly
+                                    "SCCM-POLY/P5/M-P5-", "",  // keep to strip M-P5- correctly
+                                    "SYSTEM/LPC/MULTI/P-", "", // added previously
+                                    "SYSTEM/LPC/MULTI/M-", "", // newly added
+                                    "SYSTEM/LPC/MULTI/E-", ""  // newly added
                                 )
                             )
                         ),
@@ -66,15 +152,30 @@ dt << New Column( "DCS Type",
                             Lag(:ROUTE, 1) == "ECTW.356",
                             "Post DCS for " ||
                             If( Contains( Lag(:RECIPE, -1), "P5/P-P5" ),
-                                Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-P5-", "" ),
+                                Substitute(
+                                    Lag(:RECIPE, -1),
+                                    "SCCM-POLY/P5/P-P5-", "",
+                                    "SYSTEM/LPC/MULTI/P-", "", // added previously
+                                    "SYSTEM/LPC/MULTI/M-", "", // newly added
+                                    "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                ),
                                 If( Contains( Lag(:RECIPE, -1), "P5/P-" ),
-                                    Substitute( Lag(:RECIPE, -1), "SCCM-POLY/P5/P-", "" ),
                                     Substitute(
                                         Lag(:RECIPE, -1),
-                                        "SCCM-POLY/P5/S-", "",
-                                        "SCCM-POLY/P5/E-", "",
+                                        "SCCM-POLY/P5/P-", "",
+                                        "SYSTEM/LPC/MULTI/P-", "", // added previously
+                                        "SYSTEM/LPC/MULTI/M-", "", // newly added
+                                        "SYSTEM/LPC/MULTI/E-", ""  // newly added
+                                    ),
+                                    Substitute(
+                                        Lag(:RECIPE, -1),
+                                        "SCCM-POLY/P5/S-", "",     // existing
+                                        "SCCM-POLY/P5/E-", "",     // existing
                                         /* "SCCM-POLY/P5/M-", "",  <-- removed as requested */
-                                        "SCCM-POLY/P5/M-P5-", ""   // keep to strip M-P5- correctly
+                                        "SCCM-POLY/P5/M-P5-", "",  // keep to strip M-P5- correctly
+                                        "SYSTEM/LPC/MULTI/P-", "", // added previously
+                                        "SYSTEM/LPC/MULTI/M-", "", // newly added
+                                        "SYSTEM/LPC/MULTI/E-", ""  // newly added
                                     )
                                 )
                             ),
