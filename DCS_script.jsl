@@ -1,4 +1,11 @@
 
+/* 
+This script distinguishes between DCS Pre and Post Runs
+and also returns what recipe the DCS wafer is a pre and post for.
+Please note that thus far this will only work for pin torque data.
+For additional questions contact John O'Donovan.
+*/
+
 dt = Current Data Table();
 
 // Sort the data table by RUN_START_TIME in descending order
