@@ -1,6 +1,7 @@
 /*
 Split the current data table into one table per SUBENTITY,
-then, for each subset table, run the DCS classification logic.
+run the DCS classification logic for each subset,
+then combine all subsets into a new "DCS Combined" table.
 
 Author: John O'Donovan
 */
@@ -14,6 +15,9 @@ If( Is Empty( orig ),
 If( Is Empty( Column( orig, "SUBENTITY" ) ),
     Throw( "Column 'SUBENTITY' not found in the current data table." )
 );
+
+// === CONFIG ===
+keepSubsetTables = 0;  // 0 = close subset tables after combining; 1 = keep them open
 
 // === 1) Split into one table per SUBENTITY ===
 subTables = orig << Subset(
@@ -37,13 +41,15 @@ For( i = 1, i <= N Items( subTables ), i++,
     );
 
     // If rerun, try to remove any existing "DCS Type" column safely
-    Try( dt << Delete Columns( :Name( "DCS Type" ) );, /* no-op if missing */ );
+    Try( dt << Delete Columns( :Name( "DCS Type" ) ); ); // silent if missing
 
-    // Sort the data table by RUN_START_TIME in descending order
-    dt << Sort(
-        By( :RUN_START_TIME ),
-        Order( Descending ),
-        Replace Table
+    // Sort the data table by RUN_START_TIME in descending order (skip if missing)
+    Try(
+        dt << Sort(
+            By( :RUN_START_TIME ),
+            Order( Descending ),
+            Replace Table
+        );
     );
 
     // Create "DCS Type" with your original formula
@@ -422,7 +428,28 @@ For( i = 1, i <= N Items( subTables ), i++,
         )
     );
 
-    // Optionally evaluate formula now (or leave as formula)
+    // Evaluate the formula now, then freeze values to avoid re-evaluation after concatenation
     dt << Run Formulas;
+    Try( Column( dt, "DCS Type" ) << Delete Formula; );
 
 ); // end For
+
+// === 3) Combine all processed subsets into a single table ===
+If( N Items( subTables ) == 0,
+    Throw( "No subset tables were produced." ),
+    If( N Items( subTables ) == 1,
+        // Only one subset -> copy to a new table name
+        combined = subTables[1] << Copy Table();
+        combined << Set Name( "DCS Combined" );
+    ,
+        // Concatenate all subset tables
+        rest = subTables[2::N Items( subTables )];
+        combined = subTables[1] << Concatenate(
+            Eval List( rest ),
+            Append to First Table( 1 ),
+            Create Source Column( 0 )    // already have SUBENTITY, so no extra source column
+        );
+        combined << Set Name( "DCS Combined" );
+    )
+);
+
