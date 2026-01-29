@@ -1,0 +1,9 @@
+Names Default To Here(1);
+nw = New Window( "Information", <<Modal,
+    V List Box(
+        Text Box(
+            "Information may not be completely accurate. Addin still in development phase."
+        ),
+     
+    )
+);
