@@ -2,9 +2,12 @@
 Split the current data table into one table per SUBENTITY,
 run the DCS classification logic for each subset,
 then combine all subsets into a new "DCS Combined" table.
+Finally, close all subset tables whose names begin with "SUBENTITY_" without saving.
 
 Author: John O'Donovan
 */
+
+Names Default To Here( 1 );
 
 orig = Current Data Table();
 If( Is Empty( orig ),
@@ -453,3 +456,18 @@ If( N Items( subTables ) == 0,
     )
 );
 
+// === 4) Close all tables whose names begin with "SUBENTITY_" (No Save) ===
+If( keepSubsetTables == 0,
+    dtList = Get Data Table List();
+
+    // iterate in reverse to avoid index shifts if JMP reindexes the list as tables close
+    For( i = N Items( dtList ), i >= 1, i--,
+        dt = dtList[i];
+        name = dt << Get Name;
+
+        If( Starts With( name, "SUBENTITY_" ),
+            // more robust close syntax for data tables:
+            Try( Close( dt, No Save ) );
+        );
+    );
+);
