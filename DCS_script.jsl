@@ -428,12 +428,12 @@ For( i = 1, i <= N Items( subTables ), i++,
                                         )
                                     )
                                 ),
-                                "Prod"
+                                "Prod or TW"
                             )
                         )
                     )
                 ),
-                "Prod"
+                "Prod or TW"
             )
         )
     );
@@ -446,7 +446,7 @@ For( i = 1, i <= N Items( subTables ), i++,
 
 // === 3) Combine all processed subsets into a single table ===
 If( N Items( subTables ) == 0,
-    Throw( "No subset tables were produced." ),
+    Throw( "No subset tables were created." ),
     If( N Items( subTables ) == 1,
         // Only one subset -> copy to a new table name (make sure not to honor any selection)
         combined = subTables[1] << Copy Table();
