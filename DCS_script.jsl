@@ -22,9 +22,16 @@ If( Is Empty( Column( orig, "SUBENTITY" ) ),
 // === CONFIG ===
 keepSubsetTables = 0;  // 0 = close subset tables after combining; 1 = keep them open
 
-// === 1) Split into one table per SUBENTITY ===
+// === 0) Harden against any user row/column selection on the source table ===
+// Clear any row selection and column selection so Subset/Copy/Concatenate use ALL data/columns
+Try( orig << Clear Select );                // clear selected rows
+Try( orig << Clear Column Selection );      // clear selected columns
+
+// === 1) Split into one table per SUBENTITY (force: NOT selected rows/columns) ===
 subTables = orig << Subset(
     All Rows,
+    Selected Rows( 0 ),
+    Selected Columns( 0 ),
     By( :SUBENTITY )
 );
 
@@ -441,7 +448,7 @@ For( i = 1, i <= N Items( subTables ), i++,
 If( N Items( subTables ) == 0,
     Throw( "No subset tables were produced." ),
     If( N Items( subTables ) == 1,
-        // Only one subset -> copy to a new table name
+        // Only one subset -> copy to a new table name (make sure not to honor any selection)
         combined = subTables[1] << Copy Table();
         combined << Set Name( "DCS Combined" );
     ,
@@ -460,13 +467,12 @@ If( N Items( subTables ) == 0,
 If( keepSubsetTables == 0,
     dtList = Get Data Table List();
 
-    // iterate in reverse to avoid index shifts if JMP reindexes the list as tables close
+    // iterate in reverse to avoid index shifts while closing
     For( i = N Items( dtList ), i >= 1, i--,
         dt = dtList[i];
         name = dt << Get Name;
 
         If( Starts With( name, "SUBENTITY_" ),
-            // more robust close syntax for data tables:
             Try( Close( dt, No Save ) );
         );
     );
