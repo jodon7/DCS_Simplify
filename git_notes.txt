@@ -19,3 +19,5 @@ git checkout  -b branchname
 git checkout branchname
 
 $ python -m PyInstaller gui.py
+
+## Once merges are made in github, perform the following.
